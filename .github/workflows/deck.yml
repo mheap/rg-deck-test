@@ -4,9 +4,17 @@ on:
       - main
       - develop
 jobs:
-  test:
+  set-env:
     runs-on: ubuntu-latest
-    environment: staging
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - id: set-env
+        run: echo "::set-output name=environment::staging"
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: "set-env"
+    environment: ${{ needs.set-env.outputs.environment }}
     steps:
       - uses: actions/checkout@v2
       - uses: kong/setup-deck@v1
