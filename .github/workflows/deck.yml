@@ -8,9 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
+      runtime_group: ${{ steps.set-env.outputs.runtime_group }}
     steps:
       - id: set-env
-        run: echo "::set-output name=environment::staging"
+        run: |
+          if [[ $GITHUB_REF == "refs/heads/main" ]]; then
+            echo "::set-output name=environment::production"
+            echo "::set-output name=runtime_group::default"
+          else
+            echo "::set-output name=environment::staging"
+            echo "::set-output name=runtime_group::staging"
+          fi
   deploy-staging:
     runs-on: ubuntu-latest
     needs: "set-env"
@@ -25,4 +33,4 @@ jobs:
           deck sync \
             --konnect-email ${{ secrets.KONNECT_EMAIL }} \
             --konnect-password ${{ secrets.KONNECT_PASSWORD }} \
-            --konnect-runtime-group-name staging
+            --konnect-runtime-group-name ${{ needs.set-env.outputs.runtime_group }}
